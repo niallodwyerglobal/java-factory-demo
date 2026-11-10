@@ -1,0 +1,6 @@
+#!/bin/sh
+# Enable locally with: git config core.hooksPath .githooks
+# The agent factory enables it for every commit an agent makes.
+set -e
+echo "pre-commit: ./gradlew check"
+./gradlew check -q

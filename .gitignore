@@ -1,0 +1,8 @@
+.gradle/
+build/
+.idea/
+*.iml
+out/
+.DS_Store
+# Sandcastle run state, if an agent leaves any
+.sandcastle/

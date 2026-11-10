@@ -1,0 +1,54 @@
+name: Agents
+
+# The whole interface to the agent factory: three labels.
+#   agent:explore    on an issue  → findings comment
+#   agent:implement  on an issue  → draft pull request
+#   agent:review     on a PR      → fixes, inline comments, verdict
+#
+# Uses `issues` and `pull_request`, never `pull_request_target`: a fork PR
+# gets no secrets, and the review workflow refuses it.
+
+on:
+  issues:
+    types: [labeled]
+  pull_request:
+    types: [labeled]
+
+# A ceiling on the GITHUB_TOKEN, which only checks code out. Everything that
+# writes goes through FACTORY_PAT.
+permissions:
+  contents: read
+
+jobs:
+  explore:
+    if: github.event_name == 'issues' && github.event.label.name == 'agent:explore'
+    concurrency:
+      group: agent-explore-${{ github.event.issue.number }}
+    uses: niallodwyerglobal/agent-factory/.github/workflows/explore.yml@main
+    with:
+      issue-number: ${{ github.event.issue.number }}
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      FACTORY_PAT: ${{ secrets.FACTORY_PAT }}
+
+  implement:
+    if: github.event_name == 'issues' && github.event.label.name == 'agent:implement'
+    concurrency:
+      group: agent-implement-${{ github.event.issue.number }}
+    uses: niallodwyerglobal/agent-factory/.github/workflows/implement.yml@main
+    with:
+      issue-number: ${{ github.event.issue.number }}
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      FACTORY_PAT: ${{ secrets.FACTORY_PAT }}
+
+  review:
+    if: github.event_name == 'pull_request' && github.event.label.name == 'agent:review'
+    concurrency:
+      group: agent-review-${{ github.event.pull_request.number }}
+    uses: niallodwyerglobal/agent-factory/.github/workflows/review.yml@main
+    with:
+      pr-number: ${{ github.event.pull_request.number }}
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      FACTORY_PAT: ${{ secrets.FACTORY_PAT }}
